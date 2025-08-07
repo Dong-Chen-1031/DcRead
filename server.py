@@ -5,7 +5,6 @@ from discord.ext import commands
 import asyncio
 
 import discord
-from communication import send_notification
 import logging
 
 bot = None  # 將 bot 設為全域變數
@@ -19,8 +18,8 @@ os.makedirs(IMAGE_FOLDER, exist_ok=True)
 async def hello(request):
     return web.Response(text="✅ aiohttp 成功運作！")
 
-async def send_file_access_warning(data:dict):
-        """發送檔案存取警告"""
+async def send_read_msg(data:dict):
+        """發送已讀通知"""
         
         filename = data.get('filename', '未知檔案')
         count = data.get('count', 0)
@@ -45,11 +44,11 @@ async def send_file_access_warning(data:dict):
             logging.info(f"✅ 已發送 Discord 通知: {filename} 存取 {count} 次")
         except Exception as e:
             logging.error(f"發送 Discord 訊息時發生錯誤: {e}")
+
 async def serve_image(request):
     filename = request.match_info['filename']
     
     # 紀錄詳細日誌
-    print(dict_)
     dict_[filename] = 1 if filename not in dict_ else dict_[filename] + 1
     await log_access(request, filename)
     
@@ -78,15 +77,14 @@ async def send_discord_notification(filename):
     }
     
     # 使用 asyncio.Queue 發送通知
-    await send_file_access_warning(message_data)
-    logging.info(f"📨 已發送 Discord 通知: {filename} 被存取 {dict_[filename]} 次")
+    await send_read_msg(message_data)
 
 async def log_access(request, filename):
     ip = request.remote
     user_agent = request.headers.get('User-Agent', 'Unknown')
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    log_message = f"[{now}] [{dict_[filename] if filename in dict_ else 1}] 圖片請求: {filename}，來自 IP: {ip}，User-Agent: {user_agent}"
-    logging.info(log_message)
+    log_message = f"[{dict_[filename] if filename in dict_ else 1}] 圖片請求: {filename}，User-Agent: {user_agent}"
+    # logging.info(log_message)
 
 async def create_app():
     """創建 aiohttp 應用"""

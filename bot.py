@@ -21,7 +21,7 @@ bot = commands.Bot(command_prefix=settings.PREFIX, intents=intents)
 async def run_quart_server():
     """啟動 aiohttp Web 伺服器"""
     try:
-        from quart_app import run
+        from server import run
         logging.info("🌐 啟動 aiohttp Web 伺服器...")
         await run(bot)
     except Exception as e:
