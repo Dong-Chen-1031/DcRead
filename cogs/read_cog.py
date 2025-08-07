@@ -1,4 +1,4 @@
-
+import settings
 import logging
 from discord.ext import commands
 from discord import app_commands, Interaction
@@ -11,16 +11,25 @@ class ReadCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="read", description="測試訊息已讀")
-    async def read(self, interaction: Interaction, user: discord.User):
+    async def read(self, interaction: Interaction, user: discord.User|None=None):
         """測試訊息已讀"""
+        if user is None:
+            user = interaction.user
+        if user.bot:
+            await interaction.response.send_message("無法對機器人使用此指令", ephemeral=True)
+            return
         log(interaction, user)
-        embed = discord.Embed(
-            title="已讀測試",
-            color=discord.Color.green()
-        )
-        embed.set_image(url=f"http://test.doong.me/img/{user.display_name}-{user.id}-{interaction.id}")
-        await user.send(embed=embed)
-        await interaction.response.send_message(f"已發送訊息給 {user.mention}，請查看私訊！", ephemeral=True)
+        try:
+            embed = discord.Embed(
+                title="已讀測試",
+                color=discord.Color.green()
+            )
+            embed.set_image(url=f"{settings.SERVER_URL}/img/{user.display_name}-{user.id}-{interaction.id}")
+            await user.send(embed=embed)
+            await interaction.response.send_message(f"已發送訊息給 {user.mention}，請查看私訊！")
+        except Exception as e:
+            logging.error(f"發送訊息給 {user} 時發生錯誤: {e}")
+            await interaction.response.send_message(f"發送訊息時發生錯誤: {e}", ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(ReadCog(bot))

@@ -2,6 +2,11 @@ import os
 import sys
 from dotenv import load_dotenv
 
+# 設定伺服器的 URL (含端口及http://)
+SERVER_URL = "http://test.doong.me"
+
+PORT = 1031
+
 # 載入 .env 檔案中的環境變數
 load_dotenv()
 

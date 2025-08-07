@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from discord.ext import commands
 import asyncio
-
+import settings
 import discord
 import logging
 
@@ -100,13 +100,6 @@ async def run(bot_: commands.Bot):
     app = await create_app()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 1031)
+    site = web.TCPSite(runner, '0.0.0.0', settings.PORT)
     await site.start()
-    logging.info("🌐 aiohttp Server 啟動於 http://0.0.0.0:1031")
-    
-    # # 保持伺服器運行
-    # try:
-    #     while True:
-    #         await asyncio.sleep(3600)  # 每小時檢查一次
-    # except KeyboardInterrupt:
-    #     await runner.cleanup()
+    logging.info(f"🌐 aiohttp Server 啟動於 {settings.SERVER_URL}")
