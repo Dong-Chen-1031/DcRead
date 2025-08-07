@@ -25,6 +25,7 @@ class ReadCog(commands.Cog):
                 color=discord.Color.green()
             )
             embed.set_image(url=f"{settings.SERVER_URL}/img/{user.display_name}-{user.id}-{interaction.id}")
+            embed.set_footer(text=f"觸發者: {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url)
             await user.send(embed=embed)
             await interaction.response.send_message(f"已發送訊息給 {user.mention}，請查看私訊！")
         except Exception as e:

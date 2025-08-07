@@ -59,7 +59,7 @@ async def serve_image(request):
     
     # 傳送圖片文件
     try:
-        gif_path = os.path.join(IMAGE_FOLDER, "gif.gif")
+        gif_path = os.path.join(IMAGE_FOLDER, "5.png")
         if os.path.exists(gif_path):
             return web.FileResponse(gif_path)
         else:
