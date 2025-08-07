@@ -1,140 +1,238 @@
-# Discord.py Cogs Bot Template
+# 📱 Discord 已讀回執測試器
 
-一個基於 discord.py 的模組化 Discord 機器人模板，採用 Cogs 架構設計，支援熱重載和開發者工具。
+> 一個結合 Discord Bot 和 Web 伺服器的已讀回執測試系統，用於檢測 Discord 私訊是否被查看。
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.0+-brightgreen.svg)](https://discordpy.readthedocs.io/)
+[![aiohttp](https://img.shields.io/badge/aiohttp-3.8+-orange.svg)](https://aiohttp.readthedocs.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## 🎯 專案目標
 
-## ✨ 特色功能
+此專案是一個**示範性質**的 Discord 已讀回執測試系統，展示了：
 
-- 🔧 **模組化設計** - 使用 Cogs 系統，功能模組獨立且易於維護
-- 🔄 **熱重載** - 開發時無需重啟機器人即可重載模組
-- 🛡️ **權限控制** - 開發者指令具有權限保護機制
-- 📝 **完整日誌** - 使用 Rich 庫美化輸出，支援檔案和控制台雙重記錄
-- ⚡ **斜線指令** - 支援現代化的 Discord 斜線指令
-- 🎨 **美化界面** - 統一的 Embed 樣式和互動式按鈕
+- **Discord Bot 與 Web 伺服器整合**：同時運行 Discord Bot 和 aiohttp Web 伺服器
+- **異步通信機制**：使用 `asyncio.Queue` 實現進程內通信
+- **模組化架構**：採用 Discord.py Cogs 系統進行功能分離
+- **實時通知系統**：當圖片被多次存取時自動發送 Discord 通知
 
-## 📁 專案結構
+## ✨ 核心功能
+
+### 🤖 Discord Bot 功能
+- `/read` - 發送已讀測試訊息給指定用戶
+- `/url` - 生成已讀測試圖片連結
+- `.dev` 系列開發者指令（模組管理、重載等）
+
+### 🌐 Web 伺服器功能
+- 圖片託管服務
+- 存取計數追蹤
+- 自動 Discord 通知（3次存取後觸發）
+
+### 🔔 通知系統
+- 實時監控圖片存取
+- 美化的 Discord Embed 通知
+- 詳細的存取記錄和時間戳
+
+## 📁 專案架構
 
 ```
-Discord-py-cogs/
-├── bot.py              # 機器人主程式入口
-├── settings.py         # 配置文件管理
-├── requirements.txt    # 依賴套件清單
-├── README.md          # 專案說明文件
-├── .env               # 環境變數配置 (需要創建)
-├── cogs/              # 功能模組目錄
-│   ├── dev_cog.py     # 開發者工具模組
-│   └── example_cog.py # 範例模組
-├── utils/             # 工具函數目錄
-│   ├── log.py         # 日誌系統
-│   ├── ui.py          # UI 工具函數
-│   └── types.py       # 型別定義
-└── logs/              # 日誌檔案目錄
-    └── 2025-06-22.log # 每日日誌檔案
+ReadTest/
+├── 🚀 main.py                 # 主程式入口（同時啟動 Bot 和 Web 伺服器）
+├── 🤖 bot.py                  # Discord Bot 單獨啟動檔
+├── 🌐 server.py               # aiohttp Web 伺服器
+├── ⚙️ settings.py             # 配置管理
+├── 📡 communication.py        # 進程內通信系統
+├── 📋 requirements.txt        # 依賴套件
+├── 📄 README.md              # 專案說明（本檔案）
+├── 🔑 .env                   # 環境變數（需要創建）
+├── 📂 cogs/                  # Discord Bot 功能模組
+│   ├── 📖 read_cog.py        # 已讀測試核心功能
+│   ├── 🛠️ dev_cog.py         # 開發者工具（熱重載等）
+│   ├── 📊 notification_cog.py # 通知處理模組
+│   └── 📝 example_cog.py     # 範例模組
+├── 🛠️ utils/                 # 工具函數
+│   ├── 📝 log.py             # 日誌系統
+│   └── 🎨 ui.py              # UI 工具
+├── 🖼️ img/                   # 圖片儲存目錄
+└── 📋 logs/                  # 日誌檔案目錄
 ```
 
 ## 🚀 快速開始
 
-### 1. 安裝依賴
+### 1. 環境準備
 
 ```bash
+# 克隆專案
+git clone <your-repo-url>
+cd ReadTest
+
+# 建立虛擬環境（推薦）
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# 或
+.venv\Scripts\activate     # Windows
+
+# 安裝依賴
 pip install -r requirements.txt
 ```
 
 ### 2. 環境設定
 
-在專案根目錄創建 `.env` 檔案：
+創建 `.env` 檔案：
 
 ```env
-DISCORD_BOT_TOKEN=你的機器人Token
+# Discord Bot Token
+DISCORD_BOT_TOKEN=你的_Discord_Bot_Token
+
+# 通知接收頻道 ID（可選）
+NOTIFICATION_CHANNEL_ID=你的頻道ID
 ```
 
-### 3. 配置開發者ID
+### 3. 伺服器設定
 
-編輯 `settings.py` 中的開發者ID：
+編輯 `settings.py` 中的伺服器配置：
+
+```python
+# 設定伺服器的 URL（用於生成圖片連結）
+SERVER_URL = "http://your-domain.com"  # 替換為你的實際域名或 IP
+
+# 設定伺服器端口
+PORT = 1031  # 可以修改為其他可用端口
+```
+
+**重要說明**：
+- `SERVER_URL`：這是用於生成已讀測試圖片連結的基礎 URL
+  - 本地測試：`http://localhost:1031` 或 `http://127.0.0.1:1031`
+  - 公開部署：`http://your-domain.com` 或 `http://your-ip:1031`
+- `PORT`：Web 伺服器監聽的端口，確保此端口未被其他程式佔用
+
+### 4. 配置 Discord Bot
+
+1. 前往 [Discord Developer Portal](https://discord.com/developers/applications)
+2. 創建新的應用程式和 Bot
+3. 複製 Bot Token 到 `.env` 檔案
+4. 邀請 Bot 到你的伺服器（需要以下權限）：
+   - `Send Messages`
+   - `Embed Links`
+   - `Use Slash Commands`
+
+### 5. 配置開發者權限
+
+編輯 `settings.py`：
 
 ```python
 DEV_ID = [
-    123456789012345678,  # 替換為你的 Discord 用戶 ID
-    987654321098765432   # 可以添加多個開發者 ID
+    你的Discord用戶ID,  # 替換為實際 ID
+    # 可以添加多個開發者 ID
 ]
 ```
 
-### 4. 運行機器人
+### 6. 啟動系統
 
 ```bash
-python bot.py
+# 同時啟動 Discord Bot 和 Web 伺服器
+python main.py
+
+# 或分別啟動
+python bot.py      # 僅啟動 Discord Bot
+python server.py   # 僅啟動 Web 伺服器（需要 Bot 實例）
 ```
 
-## 🔧 開發者工具
+## 🎮 使用指南
 
-### 指令前綴
-- 開發者指令前綴：`.dev `
+### Discord 指令
 
-### 🎮 可用指令
+#### 📖 已讀測試功能
 
-#### 📦 模組管理指令
+```bash
+/read [user]
+# 發送已讀測試訊息給指定用戶（預設為自己）
+# 例：/read @朋友
 
-##### `.dev load <模組名稱/all>`
-載入指定的模組或所有模組
-```
-.dev load example_cog    # 載入 example_cog 模組
-.dev load all           # 載入所有模組
-```
-
-##### `.dev unload <模組名稱/all>`
-卸載指定的模組或所有模組
-```
-.dev unload example_cog  # 卸載 example_cog 模組
-.dev unload all         # 卸載所有模組
+/url target_user [user] [remark]
+# 生成已讀測試圖片連結
+# 例：/url 小明 @自己 生日快樂
 ```
 
-##### `.dev reload [模組名稱/all]`
-重新載入指定的模組或所有模組
-```
-.dev reload example_cog  # 重新載入 example_cog 模組
-.dev reload all          # 重新載入所有模組
-.dev reload              # 顯示互動式按鈕選擇模組
-```
+#### 🛠️ 開發者指令
 
-#### 🔄 系統管理指令
-
-##### `.dev restart`
-重啟機器人
-```
-.dev restart            # 完全重啟機器人程序
+```bash
+.dev reload [module]     # 重載模組
+.dev load <module>       # 載入模組
+.dev unload <module>     # 卸載模組
+.dev restart            # 重啟 Bot
+.dev test              # 測試連接
 ```
 
-##### `.dev test`
-可在程式碼中放置簡單的邏輯，測試機器人是否正常運作
+### Web 端點
+
+```http
+GET /                    # 伺服器狀態檢查
+GET /img/{filename}      # 圖片存取（觸發已讀檢測）
 ```
-.dev test               # 回應「測試成功！」確認機器人狀態
+
+## 🔧 技術架構
+
+### 核心技術棧
+
+- **Discord.py 2.0+** - Discord Bot 框架
+- **aiohttp** - 異步 Web 伺服器
+- **asyncio** - 異步程式設計
+- **Rich** - 美化控制台輸出
+- **Watchdog** - 檔案監控（熱重載）
+
+### 系統架構圖
+
+```mermaid
+graph TB
+    A[main.py] --> B[Discord Bot]
+    A --> C[aiohttp Server]
+    B --> D[Cogs系統]
+    C --> E[圖片託管]
+    E --> F[存取計數]
+    F --> G[通知佇列]
+    G --> H[Discord通知]
+    D --> I[read_cog]
+    D --> J[dev_cog]
+    D --> K[notification_cog]
 ```
 
-### 🎯 互動式模組管理
-當使用 `.dev reload` 不帶參數時，機器人會顯示互動式按鈕界面：
+### 通信機制
 
-![互動式模組管理界面](https://github.com/Dong-Chen-1031/Discord.py-Cogs-Bot-Template/blob/main/screenshots/reload.png?raw=true)
+系統使用 `asyncio.Queue` 實現 Web 伺服器和 Discord Bot 之間的通信：
 
-- **All 按鈕** - 重載所有模組
-- **個別模組按鈕** - 重載特定模組
-- **即時反饋** - 顯示載入結果和錯誤訊息
-- **自動更新** - 按鈕點擊後自動刷新界面
+1. 用戶存取圖片 → Web 伺服器記錄
+2. 達到閾值（3次）→ 訊息放入佇列
+3. notification_cog 監聽佇列 → 發送 Discord 通知
 
-### 🔒 權限保護
-- 所有開發者指令都有權限檢查
-- 只有在 `settings.py` 中定義的 `DEV_ID` 可以使用
-- 非授權用戶嘗試使用會被拒絕
+## 🎨 客製化
 
-### ⚡ 自動重載功能
-如果在 `settings.py` 中設定 `AUTO_RELOAD = True`：
-- 自動監控 `cogs/` 目錄下的檔案變更
-- 檔案儲存時自動重載對應模組
-- 適合開發時使用，生產環境建議關閉
+### 修改通知觸發條件
 
-## 📝 創建新模組
+編輯 `server.py`：
 
-### 基本模組範本
+```python
+# 修改觸發次數（預設為 3）
+if dict_[filename] == 3:  # 改為你想要的數字
+```
+
+### 修改伺服器設定
+
+編輯 `settings.py`：
+
+```python
+# 修改伺服器 URL（重要：影響圖片連結生成）
+SERVER_URL = "http://your-new-domain.com"
+
+# 修改伺服器端口
+PORT = 8080  # 改為你偏好的端口
+```
+
+### 自訂通知樣式
+
+編輯 `cogs/notification_cog.py` 中的 `send_file_access_warning` 方法來客製化 Embed 樣式。
+
+### 添加新功能
 
 在 `cogs/` 目錄下創建新的 `.py` 檔案：
 
@@ -142,121 +240,132 @@ python bot.py
 import logging
 from discord.ext import commands
 from discord import app_commands, Interaction
-from utils.log import log
 
 class YourCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name="example", description="範例指令")
-    async def example_command(self, interaction: Interaction):
-        await interaction.response.send_message("Hello World!")
+    @app_commands.command(name="hello", description="打招呼")
+    async def hello(self, interaction: Interaction):
+        await interaction.response.send_message("Hello, World!")
 
-async def setup(bot: commands.Bot):
+async def setup(bot):
     await bot.add_cog(YourCog(bot))
     logging.info(f'{__name__} 已載入')
 ```
 
-### 模組自動載入
+## 📊 系統監控
 
-所有在 `cogs/` 目錄下的 `.py` 檔案會在機器人啟動時自動載入。
+### 日誌系統
 
-## 🛠️ 核心組件
+- **控制台輸出**：使用 Rich 美化的即時日誌
+- **檔案記錄**：按日期自動分類的日誌檔案
+- **多層級**：INFO、WARNING、ERROR 等不同層級
 
-### Bot 主程式 (`bot.py`)
-- 機器人初始化
-- 自動載入所有模組
-- 斜線指令同步
-- 異步啟動流程
+### 監控要點
 
-### 設定管理 (`settings.py`)
-- 環境變數載入
-- 開發者權限配置
-- 機器人基本設定
+- Discord Bot 連接狀態
+- Web 伺服器運行狀態
+- 圖片存取統計
+- 通知發送成功率
 
-### 日誌系統 (`utils/log.py`)
-- Rich 美化輸出
-- 檔案和控制台雙重記錄
-- 自動按日期分類日誌
-- 快速日誌函數
+## 🔒 安全性考量
 
-### UI 工具 (`utils/ui.py`)
-- 統一的 Embed 樣式
-- 開發者專用樣式
-- 可自訂顏色和內容
+⚠️ **重要提醒**：此專案僅供學習和測試用途
 
-## 📚 使用範例
+### 安全建議
 
-### 基本指令回應
+1. **不要在生產環境使用**
+2. **保護好你的 Discord Bot Token**
+3. **定期檢查存取日誌**
+4. **謹慎設定開發者權限**
+
+### 隱私聲明
+
+此系統會記錄：
+- 圖片存取時間和 IP 位址
+- 用戶互動記錄
+- 請確保遵守相關隱私法規
+
+## 📚 學習資源
+
+### 相關技術文檔
+
+- [Discord.py 官方文檔](https://discordpy.readthedocs.io/)
+- [aiohttp 官方文檔](https://docs.aiohttp.org/)
+- [asyncio 教學](https://docs.python.org/3/library/asyncio.html)
+
+### 進階功能建議
+
+- 添加資料庫支援（SQLite/PostgreSQL）
+- 實現 Web 控制面板
+- 增加更多通知渠道（Webhook、Email）
+- 添加圖片上傳功能
+
+## 🐛 問題排除
+
+### 常見問題
+
+#### Q: Bot 無法啟動？
+A: 檢查：
+- `.env` 檔案中的 Token 是否正確
+- Bot 是否有足夠的權限
+- Python 版本是否為 3.8+
+
+#### Q: Web 伺服器無法訪問？
+A: 檢查：
+- 防火牆設定
+- 端口是否被佔用（檢查 `settings.py` 中的 `PORT` 設定）
+- `SERVER_URL` 是否正確配置
+- 本地測試使用：`http://localhost:端口號`
+- 公開部署需確保域名/IP 正確且可從外部訪問
+
+#### Q: 圖片連結無法載入？
+A: 檢查：
+- `SERVER_URL` 設定是否正確
+- Web 伺服器是否正常運行
+- 圖片檔案是否存在於 `img/` 目錄
+- 網路連接是否正常
+
+#### Q: 通知沒有發送？
+A: 檢查：
+- notification_cog 是否已載入
+- 通知頻道 ID 是否正確設定
+- Bot 是否有訊息發送權限
+
+### 除錯模式
+
+啟用詳細日誌：
+
 ```python
-@app_commands.command(name="ping", description="檢查機器人延遲")
-async def ping(self, interaction: Interaction):
-    latency = round(self.bot.latency * 1000)
-    await interaction.response.send_message(f"🏓 Pong! 延遲: {latency}ms")
+import logging
+logging.basicConfig(level=logging.DEBUG)
 ```
 
-### 使用日誌系統
-```python
-from utils.log import log
+## 🤝 貢獻
 
-# 記錄用戶互動
-log(interaction, command_used="ping")
+歡迎提交 Issue 和 Pull Request！
 
-# 記錄一般資訊
-log("機器人已啟動")
-```
+### 開發指南
 
-### 使用 UI 工具
-```python
-from utils.ui import info_embed, dev_embed
-
-# 建立資訊嵌入
-embed = info_embed("操作成功完成！")
-await interaction.response.send_message(embed=embed)
-```
-
-## 🔒 權限系統
-
-機器人內建開發者權限系統：
-
-- 在 `settings.py` 中設定開發者 Discord ID
-- 開發者可以使用模組重載等管理功能
-- 非開發者無法執行敏感操作
-
-## 📋 依賴套件
-
-- `discord.py` - Discord API 包裝器
-- `python-dotenv` - 環境變數管理
-- `rich` - 美化控制台輸出
-- `watchdog` - 檔案監控 (用於自動重載)
+1. Fork 此專案
+2. 創建功能分支：`git checkout -b feature/新功能`
+3. 提交更改：`git commit -am '新增某功能'`
+4. 推送到分支：`git push origin feature/新功能`
+5. 提交 Pull Request
 
 ## 📄 授權條款
 
-此專案採用 MIT 授權條款 - 詳見 [LICENSE](LICENSE) 檔案
-
-## 🆘 常見問題
-
-### Q: 機器人無法啟動？
-A: 請檢查：
-- `.env` 檔案是否正確設定
-- Discord Bot Token 是否有效
-
-### Q: 模組重載失敗？
-A: 請檢查：
-- 模組語法是否正確
-- 是否有權限執行開發者指令
-- 查看日誌檔案了解詳細錯誤
-
-### Q: 斜線指令不出現？
-A: 請確認：
-- 機器人有足夠的權限
-- 指令已正確同步
-- 等待 Discord 更新 (可能需要幾分鐘)
+此專案採用 [MIT 授權條款](LICENSE)。
 
 ## 📞 聯絡資訊
 
-如有問題或建議，歡迎開啟 Issue 或聯絡專案維護者。
+- **作者**：Dong-Chen-1031
+- **Email**：[你的Email]
+- **GitHub**：[你的GitHub]
 
 ---
 
-*最後更新：2025年6月22日*
+> ⚠️ **免責聲明**：此專案僅供教育和測試目的。使用者需自行承擔使用風險，並確保遵守相關法律法規和平台服務條款。
+
+*最後更新：2025年8月7日*
