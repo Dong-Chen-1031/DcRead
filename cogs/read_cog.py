@@ -25,7 +25,7 @@ class ReadCog(commands.Cog):
                 title="已讀測試",
                 color=discord.Color.green()
             )
-            embed.set_image(url=f"{settings.SERVER_URL}/img/{user.display_name}-{user.id}-{random.randint(100000000, 1000000000)}")
+            embed.set_image(url=f"{settings.SERVER_URL}/img/{user.name}-{user.id}-{random.randint(100000000, 1000000000)}")
             embed.set_footer(text=f"觸發者: {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url)
             await user.send(embed=embed)
             await interaction.response.send_message(f"已發送訊息給 {user.mention}，請查看私訊！")
@@ -40,7 +40,7 @@ class ReadCog(commands.Cog):
         """產生已讀測試圖片 URL"""
         if user is None:
             user = interaction.user
-        url = f"{settings.SERVER_URL}/img/{target_user}({remark})-{user.id}-{random.randint(100000000, 1000000000)}"
+        url = f"{settings.SERVER_URL}/img/{target_user}{f"({remark})" if remark else ""}-{user.id}-{random.randint(100000000, 1000000000)}"
         embed = discord.Embed(
             title="已讀測試圖片 URL",
             description=f"請將以下圖片傳給 `{target_user}`：\n```{url}```",
