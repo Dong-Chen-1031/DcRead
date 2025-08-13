@@ -1,6 +1,7 @@
 from rich.traceback import install
 # 安裝Rich traceback
 install(show_locals=True)
+import read
 
 import sys
 import discord
@@ -18,19 +19,11 @@ intents = discord.Intents.all()
 
 bot = commands.Bot(command_prefix=settings.PREFIX, intents=intents)
 
-async def run_quart_server():
-    """啟動 aiohttp Web 伺服器"""
-    try:
-        from server import run
-        logging.info("🌐 啟動 aiohttp Web 伺服器...")
-        await run(bot)
-    except Exception as e:
-        logging.error(f"aiohttp 伺服器啟動失敗: {e}")
 
 @bot.event
 async def on_ready():
     logging.info(f'已登入為 {bot.user.name}')
-    await run_quart_server()
+    await read.start_server(url=settings.SERVER_URL, port=settings.PORT)
     try:
         synced = await bot.tree.sync()
         logging.info(f'已同步 {len(synced)} 個斜線指令')
