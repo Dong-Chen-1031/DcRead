@@ -361,11 +361,10 @@ logging.basicConfig(level=logging.DEBUG)
 ## 📞 聯絡資訊
 
 - **作者**：Dong-Chen-1031
-- **Email**：[你的Email]
-- **GitHub**：[你的GitHub]
+- **GitHub**：Dong-Chen-1031
 
 ---
 
 > ⚠️ **免責聲明**：此專案僅供教育和測試目的。使用者需自行承擔使用風險，並確保遵守相關法律法規和平台服務條款。
 
-*最後更新：2025年8月7日*
+*最後更新：2025年9月6日*
