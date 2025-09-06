@@ -9,6 +9,7 @@ from typing import Any, Awaitable, Optional, Callable, Union
 import discord
 import logging
 import uuid
+from .types import ReadCtx
 
 server_run = False  # 用於標記伺服器是否已啟動
 
@@ -19,13 +20,9 @@ file_access_count = {}
 file_handlers = {}
 
 # 圖片儲存的資料夾
-IMAGE_FOLDER = 'img'
+IMAGE_FOLDER = 'read/img'
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
-
-class ReadCtx:
-    def __init__(self, event_id, times, data):
-        pass
 
 async def root(request):
     return web.Response(text="✅ Read Test 成功運作！")
@@ -46,7 +43,6 @@ async def serve_image(request: web.Request):
         if os.path.exists(gif_path):
             return web.FileResponse(gif_path)
         else:
-            
             return web.Response(text=f"圖片 {filename} 已載入 (第 {file_access_count[filename]} 次)", content_type='text/plain')
     except Exception as e:
         return web.Response(text=f"載入圖片時發生錯誤: {e}", status=500)
@@ -55,7 +51,7 @@ def get_image_url(handle:Callable, data:Optional[any]) -> str:
     global file_handlers
     img_id = uuid.uuid4().hex
     file_handlers[img_id] = (handle, data)
-    return f"http://localhost:8080/{img_id}"
+    return f"{server_url}/{img_id}"
 
 async def safe_call_handler(
     handler: Union[Callable[[Any], Any], Callable[[Any], Awaitable[Any]]], 
@@ -63,30 +59,23 @@ async def safe_call_handler(
     filename: str
 ) -> None:
     """安全地調用處理函數（同步或異步），依參數數量決定傳入內容"""
+
+    ctx = ReadCtx(event_id=filename, access_count=file_access_count[filename], time=datetime.now(), data=data)
     try:
-        sig = inspect.signature(handler)
-        param_count = len(sig.parameters)
+        # sig = inspect.signature(handler)
+        # param_count = len(sig.parameters)
 
         if asyncio.iscoroutinefunction(handler):
-            if param_count == 0:
-                await handler()
-            elif param_count == 1:
-                await handler(data)
-            else:
-                await handler(data, filename)
+            await handler(ctx)
         else:
-            if param_count == 0:
-                handler()
-            elif param_count == 1:
-                handler(data)
-            else:
-                handler(data, filename)
+            handler(ctx)
     except Exception as e:
         logging.error(f"處理函數執行失敗: {e}", exc_info=True)
 
 async def call_handler(filename):
     """呼叫對應的處理函數"""
     if filename in file_handlers:
+        logging.info(f"觸發處理函數: {filename}")
         handle, data = file_handlers[filename]
         await safe_call_handler(handle, data, filename)
 

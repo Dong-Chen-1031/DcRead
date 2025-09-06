@@ -1,4 +1,5 @@
 from datetime import datetime
+from read import ReadCtx
 import settings
 import logging
 from discord.ext import commands
@@ -7,36 +8,36 @@ import discord
 from utils.log import log
 from typing import Optional
 import random
-from .. import read
+import read
 class ReadCog(commands.Cog):
     def __init__(self, bot):
         self.bot:commands.Bot = bot
 
-    async def send_read_msg(self, data:dict, event_id: str) -> None:
+    async def send_read_msg(self, ctx: ReadCtx) -> None:
         """發送已讀通知"""
 
-        user_name: str = data.get('user_name', '未知檔案')
-        notify_user: str = data.get('notify_user', '未知使用者')
-        count: int = data.get('count', 0)
-        timestamp = data.get('timestamp', datetime.now().isoformat())
-        dm_channel = self.bot.get_user(int(notify_user))  # 假設 filename 格式為 "user_id-unique_id"
+        user_name: str = ctx.data.get('caller_user_name', '未知使用者')
+        notify_user: str = ctx.data.get('notify_user', '未知使用者')
+        count: int = ctx.access_count
+        timestamp = ctx.time
+        dm_channel = self.bot.get_user(int(notify_user))
         # 建立 Embed 訊息
         embed = discord.Embed(
             title="訊息已讀",
             description=f"使用者 `{user_name}` 已讀取訊息！",
             color=0xff9900,  # 橘色
-            timestamp=datetime.fromisoformat(timestamp)
+            timestamp=timestamp
         )
 
-        embed.add_field(name="事件ID", value=f"`{notify_user}`", inline=True)
+        embed.add_field(name="事件ID", value=f"`{ctx.event_id}`", inline=True)
         embed.add_field(name="存取次數", value=f"**{count}**", inline=True)
-        embed.add_field(name="觸發時間", value=f"<t:{int(datetime.fromisoformat(timestamp).timestamp())}:F>", inline=False)
+        embed.add_field(name="觸發時間", value=f"<t:{int(timestamp.timestamp())}:F>", inline=False)
         
         embed.set_footer(text="由 已讀測試 觸發")
         
         try:
             await dm_channel.send(embed=embed)
-            logging.info(f"✅ 已發送 Discord 通知: {filename} 存取 {count} 次")
+            logging.info(f"✅ 已發送 Discord 通知: {notify_user} 存取 {count} 次")
         except Exception as e:
             logging.error(f"發送 Discord 訊息時發生錯誤: {e}")
 
@@ -52,7 +53,12 @@ class ReadCog(commands.Cog):
         try:
             img = read.get_image_url(
                 self.send_read_msg,
+                data={
+                    "caller_user_name": interaction.user.display_name,
+                    "notify_user": user.id,
+                }
             )
+            logging.info(f"產生已讀測試圖片 URL: {img}")
             embed = discord.Embed(
                 title="已讀測試",
                 color=discord.Color.green()
