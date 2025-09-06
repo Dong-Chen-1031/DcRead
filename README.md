@@ -361,8 +361,7 @@ logging.basicConfig(level=logging.DEBUG)
 ## 📞 聯絡資訊
 
 - **作者**：Dong-Chen-1031
-- **Email**：[你的Email]
-- **GitHub**：[你的GitHub]
+- **GitHub**：Dong-Chen-1031
 
 ---
 
