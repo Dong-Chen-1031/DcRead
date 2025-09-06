@@ -7,6 +7,9 @@
 [![aiohttp](https://img.shields.io/badge/aiohttp-3.8+-orange.svg)](https://aiohttp.readthedocs.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> [點此安裝](https://discord.com/oauth2/authorize?client_id=1402571906594508820)
+
+
 ## 🎯 專案目標
 
 此專案是一個**示範性質**的 Discord 已讀回執測試系統，展示了：
